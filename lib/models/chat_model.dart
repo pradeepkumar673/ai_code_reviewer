@@ -30,14 +30,14 @@ class ChatMessage {
   }
 }
 
-class PropalChatSession {
+class DevForgeChatSession {
   final String id;
   final String title;
   final List<ChatMessage> messages;
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  PropalChatSession({
+  DevForgeChatSession({
     required this.id,
     required this.title,
     required this.messages,
@@ -55,8 +55,8 @@ class PropalChatSession {
     };
   }
 
-  factory PropalChatSession.fromJson(Map<String, dynamic> json) {
-    return PropalChatSession(
+  factory DevForgeChatSession.fromJson(Map<String, dynamic> json) {
+    return DevForgeChatSession(
       id: json['id'],
       title: json['title'],
       messages: (json['messages'] as List)
@@ -67,12 +67,12 @@ class PropalChatSession {
     );
   }
 
-  PropalChatSession copyWith({
+  DevForgeChatSession copyWith({
     String? title,
     List<ChatMessage>? messages,
     DateTime? updatedAt,
   }) {
-    return PropalChatSession(
+    return DevForgeChatSession(
       id: id,
       title: title ?? this.title,
       messages: messages ?? this.messages,

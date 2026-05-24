@@ -33,7 +33,7 @@ class AuthService {
   static Future<bool> authenticateWithBiometrics() async {
     try {
       final bool didAuthenticate = await _localAuth.authenticate(
-        localizedReason: 'Please authenticate to access Propal',
+        localizedReason: 'Please authenticate to access DevForge AI',
         options: const AuthenticationOptions(
           biometricOnly: true,
           stickyAuth: false, // Changed to false to avoid blocking

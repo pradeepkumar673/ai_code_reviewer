@@ -1,8 +1,8 @@
-# Propal - AI Coding Assistant
+# DevForge AI: AI-Driven Smart Developer Companion
 
-A modern Flutter application that provides an intelligent coding assistant powered by Google's Gemini AI. Propal helps developers with coding questions, debugging, and programming guidance through a beautiful, secure interface.
+A modern Flutter application that provides an intelligent coding assistant powered by Google's Gemini AI. DevForge AI helps developers with coding questions, debugging, and programming guidance through a beautiful, secure interface.
 
-![Propal Logo](assets/logo.png)
+![DevForge AI Logo](assets/logo.png)
 
 ## 🚀 Features
 
@@ -68,8 +68,8 @@ dependencies:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/propal.git
-   cd propal
+   git clone https://github.com/yourusername/devforge_ai.git
+   cd devforge_ai
    ```
 
 2. **Install dependencies**
@@ -203,7 +203,7 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 ## 📞 Support
 
 If you encounter any issues or have questions:
-1. Check the [Issues](https://github.com/yourusername/propal/issues) page
+1. Check the [Issues](https://github.com/yourusername/devforge_ai/issues) page
 2. Create a new issue if your problem isn't already reported
 3. Provide detailed information about your environment and the issue
 
@@ -220,12 +220,10 @@ If you encounter any issues or have questions:
 
 - Google Gemini AI for powering the intelligent responses
 - Flutter team for the amazing framework
-- All contributors and users who help improve Propal
+- All contributors and users who help improve DevForge AI
 
 ---
 
 Made with ❤️ by developers, for developers
 
-**Propal** - Your AI-powered coding companion
-
-
+**DevForge AI** - Your AI-powered coding companion

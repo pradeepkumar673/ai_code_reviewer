@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:propal/pages/home_page.dart';
-import 'package:propal/pages/login_page.dart';
-import 'package:propal/pages/biometric_auth_page.dart';
+import 'package:devforge_ai/pages/home_page.dart';
+import 'package:devforge_ai/pages/login_page.dart';
+import 'package:devforge_ai/pages/biometric_auth_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
@@ -90,7 +90,7 @@ class SplashScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              'Propal',
+              'DevForge AI',
               style: GoogleFonts.sourceCodePro(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,

@@ -24,7 +24,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late final ChatService _chatService;
   User? _currentUser;
-  List<PropalChatSession> _chatSessions = [];
+  List<DevForgeChatSession> _chatSessions = [];
 
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _textController = TextEditingController();
@@ -102,7 +102,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         title: Text(
-          currentSession?.title ?? 'Propal',
+          currentSession?.title ?? 'DevForge AI',
           style: GoogleFonts.sourceCodePro(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -341,7 +341,7 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 32),
           Text(
-            'Welcome to Propal',
+            'Welcome to DevForge AI',
             style: GoogleFonts.sourceCodePro(
               fontSize: 28,
               fontWeight: FontWeight.bold,

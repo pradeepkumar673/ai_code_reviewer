@@ -1,6 +1,6 @@
-# Detailed Setup Guide for Propal
+# Detailed Setup Guide for DevForge AI
 
-This guide provides step-by-step instructions for setting up the Propal AI Coding Assistant on your development environment.
+This guide provides step-by-step instructions for setting up the DevForge AI Coding Assistant on your development environment.
 
 ## 📋 Prerequisites
 
@@ -34,10 +34,10 @@ This guide provides step-by-step instructions for setting up the Propal AI Codin
 
 ```bash
 # Clone the repository
-git clone https://github.com/Atharva-Werulkar/propal.git
+git clone https://github.com/Atharva-Werulkar/devforge_ai.git
 
 # Navigate to project directory
-cd propal
+cd devforge_ai
 
 # Verify Flutter installation
 flutter doctor
@@ -307,4 +307,4 @@ If you encounter issues:
 
 ---
 
-Happy coding with Propal! 🚀
+Happy coding with DevForge AI! 🚀

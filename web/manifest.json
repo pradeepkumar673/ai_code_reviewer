@@ -1,11 +1,11 @@
 {
-    "name": "propal",
-    "short_name": "propal",
+    "name": "DevForge AI",
+    "short_name": "DevForge",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#1A1E29",
     "theme_color": "#6366F1",
-    "description": "A new Flutter project.",
+    "description": "AI-Driven Smart Developer Companion",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

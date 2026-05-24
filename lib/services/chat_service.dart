@@ -7,7 +7,7 @@ import '../utils/constants.dart';
 class ChatService {
   static const Uuid _uuid = Uuid();
   late GenerativeModel _model;
-  PropalChatSession? _currentSession;
+  DevForgeChatSession? _currentSession;
 
   ChatService() {
     _initializeModel();
@@ -21,8 +21,8 @@ class ChatService {
   }
 
   // Create a new chat session
-  Future<PropalChatSession> createNewSession({String? title}) async {
-    final session = PropalChatSession(
+  Future<DevForgeChatSession> createNewSession({String? title}) async {
+    final session = DevForgeChatSession(
       id: _uuid.v4(),
       title: title ?? 'New Chat',
       messages: [],
@@ -45,7 +45,7 @@ class ChatService {
   }
 
   // Get current session
-  PropalChatSession? get currentSession => _currentSession;
+  DevForgeChatSession? get currentSession => _currentSession;
 
   // Send message and get response
   Future<ChatMessage> sendMessage(String content) async {
@@ -130,7 +130,7 @@ class ChatService {
   }
 
   // Get all chat sessions
-  Future<List<PropalChatSession>> getAllSessions() async {
+  Future<List<DevForgeChatSession>> getAllSessions() async {
     final sessions = await SecureStorageService.getChatSessions();
     sessions.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     return sessions;

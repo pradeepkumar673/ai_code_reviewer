@@ -25,23 +25,23 @@ class SecureStorageService {
   }
 
   // Chat History Management
-  static Future<void> saveChatSessions(List<PropalChatSession> sessions) async {
+  static Future<void> saveChatSessions(List<DevForgeChatSession> sessions) async {
     final prefs = await SharedPreferences.getInstance();
     final sessionsJson = sessions.map((s) => s.toJson()).toList();
     await prefs.setString('chat_sessions', jsonEncode(sessionsJson));
   }
 
-  static Future<List<PropalChatSession>> getChatSessions() async {
+  static Future<List<DevForgeChatSession>> getChatSessions() async {
     final prefs = await SharedPreferences.getInstance();
     final sessionsJson = prefs.getString('chat_sessions');
     if (sessionsJson != null) {
       final List<dynamic> sessions = jsonDecode(sessionsJson);
-      return sessions.map((s) => PropalChatSession.fromJson(s)).toList();
+      return sessions.map((s) => DevForgeChatSession.fromJson(s)).toList();
     }
     return [];
   }
 
-  static Future<void> saveChatSession(PropalChatSession session) async {
+  static Future<void> saveChatSession(DevForgeChatSession session) async {
     final sessions = await getChatSessions();
     final existingIndex = sessions.indexWhere((s) => s.id == session.id);
 

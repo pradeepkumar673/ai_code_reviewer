@@ -1,4 +1,4 @@
-package com.example.propal
+package com.yourcompany.devforgeai
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 
