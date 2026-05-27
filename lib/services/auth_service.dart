@@ -6,6 +6,6 @@ class AuthService {
   }
 
   static Future<void> logout() async {
-    print("User logged out");
+    print("Logged out");
   }
 }

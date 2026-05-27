@@ -10,16 +10,45 @@ class ChatMessage {
     required this.isFromUser,
     required this.timestamp,
   });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'content': content,
+        'isFromUser': isFromUser,
+        'timestamp': timestamp.toIso8601String(),
+      };
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
+        id: json['id'],
+        content: json['content'],
+        isFromUser: json['isFromUser'],
+        timestamp: DateTime.parse(json['timestamp']),
+      );
 }
 
-class PropalChatSession {
+class DevForgeChatSession {
   final String id;
   final String title;
   final List<ChatMessage> messages;
 
-  PropalChatSession({
+  DevForgeChatSession({
     required this.id,
     required this.title,
     required this.messages,
   });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'messages': messages.map((m) => m.toJson()).toList(),
+      };
+
+  factory DevForgeChatSession.fromJson(Map<String, dynamic> json) =>
+      DevForgeChatSession(
+        id: json['id'],
+        title: json['title'],
+        messages: (json['messages'] as List)
+            .map((m) => ChatMessage.fromJson(m))
+            .toList(),
+      );
 }

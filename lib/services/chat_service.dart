@@ -1,7 +1,7 @@
 import '../models/chat_model.dart';
 
 class ChatService {
-  PropalChatSession? currentSession;
+  DevForgeChatSession? currentSession;   // ← Updated
 
   Future<void> createNewSession() async {
     print("New session created");
@@ -15,7 +15,7 @@ class ChatService {
     print("Deleting session: $sessionId");
   }
 
-  List<PropalChatSession> getAllSessions() {
+  List<DevForgeChatSession> getAllSessions() {   // ← Updated
     return [];
   }
 }
