@@ -21,7 +21,7 @@ dependencies:
   lottie: ^3.1.0
   image_picker: ^1.1.2
   # ML Kit for text recognition
-  google_ml_kit: ^2.5.0
+  google_ml_kit: ^0.21.0
   # For future ML scoring
   tflite_flutter: ^0.12.0
   # Voice input/output
@@ -49,6 +49,8 @@ dependencies:
   # For dependency injection (if using riverpod hooks)
   hooks_riverpod: ^2.4.9
   flutter_hooks: ^0.20.5
+  # For navigation
+  go_router: ^14.2.0
 
 dev_dependencies:
   flutter_test:

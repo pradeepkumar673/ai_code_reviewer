@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:devforge_ai/core/widgets/custom_app_bar.dart';
 import 'package:devforge_ai/core/widgets/custom_button.dart';
 import 'package:devforge_ai/core/widgets/custom_text_field.dart';
 import 'package:devforge_ai/core/widgets/loading_indicator.dart';
@@ -6,10 +8,8 @@ import 'package:devforge_ai/core/widgets/error_display.dart';
 import 'package:devforge_ai/core/constants/icon_constants.dart';
 import 'package:devforge_ai/features/code_quality/domain/usecases/analyze_code_quality.dart';
 import 'package:devforge_ai/features/code_quality/domain/entities/quality_analysis_result.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:devforge_ai/core/models/persona.dart';
 
-/// Page for analyzing code quality and providing improvement suggestions
 class QualityScorerPage extends ConsumerStatefulWidget {
   const QualityScorerPage({super.key});
 
@@ -49,19 +49,12 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
     final analyzeCodeQuality = ref.watch(analyzeCodeQualityProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Code Quality Scorer',
-          style: GoogleFonts.sourceCodePro(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 0,
+      appBar: CustomAppBar(
+        title: 'Code Quality Scorer',
+        showBackButton: false,
         actions: [
           IconButton(
-            icon: Icon(IconConstants.clear),
+            icon: const Icon(IconConstants.clear),
             tooltip: 'Clear Code',
             onPressed: _isAnalyzing ? null : _clearCode,
           ),
@@ -77,7 +70,7 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
                 // Language Selector
                 Container(
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceVariant,
+                    color: theme.colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: DropdownButtonFormField<String>(
@@ -97,7 +90,9 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
                         value: language,
                         child: Text(
                           language,
-                          style: GoogleFonts.sourceCodePro(),
+                          style: const TextStyle(
+                            fontSize: 16,
+                          ),
                         ),
                       );
                     }).toList(),
@@ -117,7 +112,6 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
                   flex: 2,
                   child: CustomTextField(
                     hintText: 'Paste your code here for analysis...',
-                    labelText: 'Code to Analyze',
                     controller: _codeController,
                     maxLines: 10,
                   ),
@@ -127,7 +121,7 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
                 // Analyze Button
                 CustomButton(
                   text: 'Analyze Code Quality',
-                  icon: Icon(IconConstants.insights),
+                  icon: IconConstants.insights,
                   onPressed: _isAnalyzing ? null : _analyzeCode,
                   isLoading: _isAnalyzing,
                   fullWidth: true,
@@ -158,7 +152,7 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
                           // Individual Scores
                           Text(
                             'Detailed Analysis',
-                            style: GoogleFonts.sourceCodePro(
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -190,10 +184,10 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
                           if (_analysisResult!.strengths.isNotEmpty) ...[
                             Text(
                               'Strengths',
-                              style: GoogleFonts.sourceCodePro(
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: theme.colorScheme.primary,
+                                color: Colors.green,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -201,13 +195,12 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
                                   padding: const EdgeInsets.only(left: 16, bottom: 4),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.check_circle,
-                                          size: 16, color: Colors.green),
+                                      const Icon(Icons.check_circle),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
                                           strength,
-                                          style: GoogleFonts.sourceCodePro(fontSize: 14),
+                                          style: const TextStyle(fontSize: 14),
                                         ),
                                       ),
                                     ],
@@ -220,10 +213,10 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
                           if (_analysisResult!.suggestions.isNotEmpty) ...[
                             Text(
                               'Improvement Suggestions',
-                              style: GoogleFonts.sourceCodePro(
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: theme.colorScheme.primary,
+                                color: Colors.orange,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -231,13 +224,12 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
                                   padding: const EdgeInsets.only(left: 16, bottom: 4),
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.lightbulb_outline,
-                                          size: 16, color: Colors.orange),
+                                      const Icon(Icons.lightbulb_outline),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
                                           suggestion,
-                                          style: GoogleFonts.sourceCodePro(fontSize: 14),
+                                          style: const TextStyle(fontSize: 14),
                                         ),
                                       ),
                                     ]
@@ -249,14 +241,14 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
                           // Action Buttons
                           CustomButton(
                             text: 'Send Analysis to Chat',
-                            icon: Icon(IconConstants.send),
+                            icon: IconConstants.send,
                             onPressed: _sendToChat,
                             fullWidth: true,
                           ),
                           const SizedBox(height: 8),
                           CustomButton.outlined(
                             text: 'Analyze Another Code Snippet',
-                            icon: Icon(IconConstants.refresh),
+                            icon: IconConstants.refresh,
                             onPressed: _analyzeAnother,
                             fullWidth: true,
                           ),
@@ -275,13 +267,13 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
                           Icon(
                             IconConstants.insights,
                             size: 64,
-                            color: theme.colorScheme.onSurfaceVariant,
+                            color: Colors.grey,
                           ),
                           const SizedBox(height: 16),
-                          Text(
+                          const Text(
                             'Paste code above and click "Analyze Code Quality" to get started',
-                            style: GoogleFonts.sourceCodePro(
-                              color: theme.colorScheme.onSurfaceVariant,
+                            style: TextStyle(
+                              color: Colors.grey,
                               fontSize: 16,
                             ),
                             textAlign: TextAlign.center,
@@ -309,23 +301,23 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
           Text(
             title,
-            style: GoogleFonts.sourceCodePro(
+            style: const TextStyle(
               fontSize: 14,
-              color: theme.colorScheme.onSurfaceVariant,
+              color: Colors.grey,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             '${score.toStringAsFixed(0)}',
-            style: GoogleFonts.sourceCodePro(
+            style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
               color: color,
@@ -351,7 +343,7 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
             flex: 2,
             child: Text(
               label,
-              style: GoogleFonts.sourceCodePro(fontSize: 14),
+              style: const TextStyle(fontSize: 14),
             ),
           ),
           Expanded(
@@ -359,7 +351,7 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
             child: Container(
               height: 8,
               decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceVariant,
+                color: theme.colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(4),
               ),
               child: LayoutBuilder(
@@ -378,7 +370,7 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
                         child: Center(
                           child: Text(
                             '${score.toStringAsFixed(0)}%',
-                            style: GoogleFonts.sourceCodePro(
+                            style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: score > 50 ? Colors.white : Colors.black87,
@@ -419,7 +411,7 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
     });
 
     try {
-      final result = await analyzeCodeQuality(
+      final result = await analyzeCodeQuality.call(
         code: code,
         language: _selectedLanguage,
       );
@@ -440,9 +432,9 @@ class _QualityScorerPageState extends ConsumerState<QualityScorerPage> {
 
     // Format the analysis results for sending to chat
     final analysisMessage = '''
-I analyzed this ${_selectedLanguage} code:
+I analyzed this $_selectedLanguage code:
 
-\`\`\`${_selectedLanguage}
+\`\`\`$_selectedLanguage
 ${_codeController.text}
 \`\`\`
 
@@ -467,12 +459,9 @@ Based on this analysis, could you provide specific guidance on how to improve th
       // For now, we'll show a success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Analysis sent to chat!',
-              style: GoogleFonts.sourceCodePro(),
-            ),
-            backgroundColor: Theme.of(context).colorScheme.primary,
+          const SnackBar(
+            content: Text('Analysis sent to chat!'),
+            backgroundColor: Colors.green,
           ),
         );
       }
@@ -480,10 +469,7 @@ Based on this analysis, could you provide specific guidance on how to improve th
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Error sending to chat: $e',
-              style: GoogleFonts.sourceCodePro(),
-            ),
+            content: Text('Error sending to chat: $e'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );

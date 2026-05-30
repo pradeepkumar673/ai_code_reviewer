@@ -1,14 +1,15 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:devforge_ai/core/widgets/custom_app_bar.dart';
 import 'package:devforge_ai/core/widgets/custom_button.dart';
 import 'package:devforge_ai/core/widgets/custom_text_field.dart';
 import 'package:devforge_ai/core/widgets/loading_indicator.dart';
+import 'package:devforge_ai/core/widgets/error_display.dart';
+import 'package:devforge_ai/features/camera_scanner/domain/usecases/scan_code.dart';
 import 'package:devforge_ai/features/chat/domain/use_cases/send_message.dart';
-import 'package:devforge_ai/features/camera_scanner/domain/use_cases/scan_code.dart';
-import 'package:devforge_ai/features/chat/domain/entities/persona.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:devforge_ai/core/models/persona.dart';
+import 'package:devforge_ai/core/providers/app_providers.dart';
 
-/// Scanner Page for capturing code from laptop screen using device camera
 class ScannerPage extends ConsumerStatefulWidget {
   const ScannerPage({super.key});
 
@@ -22,23 +23,14 @@ class _ScannerPageState extends ConsumerState<ScannerPage> {
   bool _useCamera = true; // true for camera, false for gallery
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final scanCode = ref.watch(scanCodeProvider);
-    final sendMessage = ref.watch(sendMessageProvider);
     final currentPersona = ref.watch(personaProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Code Scanner',
-          style: GoogleFonts.sourceCodePro(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: theme.scaffoldBackgroundColor,
-        elevation: 0,
+      appBar: CustomAppBar(
+        title: 'Code Scanner',
+        showBackButton: false,
         actions: [
           IconButton(
             icon: Icon(_useCamera ? Icons.photo_library : Icons.camera_alt),
@@ -64,10 +56,10 @@ class _ScannerPageState extends ConsumerState<ScannerPage> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: theme.colorScheme.primary.withOpacity(0.3),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Text(
@@ -75,8 +67,8 @@ class _ScannerPageState extends ConsumerState<ScannerPage> {
                         ? 'Point your camera at code on your laptop screen\nMake sure the code is well-lit and in focus'
                         : 'Select an image from your gallery containing code',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.sourceCodePro(
-                      color: theme.colorScheme.onSurfaceVariant,
+                    style: const TextStyle(
+                      color: Colors.grey,
                     ),
                   ),
                 ),
@@ -105,14 +97,14 @@ class _ScannerPageState extends ConsumerState<ScannerPage> {
                       ? Center(
                           child: Text(
                             'No code scanned yet',
-                            style: GoogleFonts.sourceCodePro(
-                              color: theme.colorScheme.onSurfaceVariant,
+                            style: const TextStyle(
+                              color: Colors.grey,
                             ),
                           ),
                         )
                       : Container(
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceVariant,
+                            color: theme.colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: theme.colorScheme.outline,
@@ -125,7 +117,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> {
                                 padding: const EdgeInsets.all(16),
                                 child: Text(
                                   _scannedText,
-                                  style: GoogleFonts.sourceCodePro(
+                                  style: const TextStyle(
                                     fontSize: 14,
                                   ),
                                 ),
@@ -172,7 +164,8 @@ class _ScannerPageState extends ConsumerState<ScannerPage> {
     });
 
     try {
-      final scannedText = await scanCode(useCamera: _useCamera);
+      final scanCode = ref.read(scanCodeProvider);
+      final scannedText = await scanCode.call(useCamera: _useCamera);
       if (scannedText != null && scannedText.isNotEmpty) {
         setState(() {
           _scannedText = scannedText;
@@ -181,9 +174,8 @@ class _ScannerPageState extends ConsumerState<ScannerPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
+              content: const Text(
                 'No text detected. Please try again with better lighting.',
-                style: GoogleFonts.sourceCodePro(),
               ),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
@@ -196,7 +188,6 @@ class _ScannerPageState extends ConsumerState<ScannerPage> {
           SnackBar(
             content: Text(
               'Error scanning: $e',
-              style: GoogleFonts.sourceCodePro(),
             ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
@@ -216,12 +207,9 @@ class _ScannerPageState extends ConsumerState<ScannerPage> {
     // For now, we'll show a snackbar
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Text copied to clipboard!',
-            style: GoogleFonts.sourceCodePro(),
-          ),
-          backgroundColor: Theme.of(context).colorScheme.primary,
+        const SnackBar(
+          content: Text('Text copied to clipboard!'),
+          backgroundColor: Colors.green,
         ),
       );
     }
@@ -240,13 +228,14 @@ Can you help me understand, debug, or improve this code?
 ''';
 
     try {
-      await sendMessage(contextMessage);
+      final sendMessage = ref.read(sendMessageProvider);
+      final currentPersona = ref.read(personaProvider);
+      await sendMessage.call(contextMessage);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               'Sent to chat with ${currentPersona.displayName}',
-              style: GoogleFonts.sourceCodePro(),
             ),
             backgroundColor: Theme.of(context).colorScheme.primary,
           ),
@@ -262,7 +251,6 @@ Can you help me understand, debug, or improve this code?
           SnackBar(
             content: Text(
               'Error sending to chat: $e',
-              style: GoogleFonts.sourceCodePro(),
             ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
