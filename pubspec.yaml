@@ -51,6 +51,8 @@ dependencies:
   flutter_hooks: ^0.20.5
   # For navigation
   go_router: ^14.2.0
+  # Camera plugin for embedded camera preview
+  camera: ^0.10.0+3
 
 dev_dependencies:
   flutter_test:

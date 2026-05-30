@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:devforge_ai/core/router/app_router.dart';
+import 'package:devforge_ai/core/providers/auth_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,66 +12,27 @@ Future<void> main() async {
   ));
 }
 
-class MyApp extends ConsumerStatefulWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  ConsumerState<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends ConsumerState<MyApp> {
-  bool _isInitialized = false;
-  bool _isLoggedIn = false;
-  bool _isBiometricEnabled = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkAuthStatus();
-  }
-
-  Future<void> _checkAuthStatus() async {
-    // For now, we'll simulate auth status
-    // In a real app, this would check secure storage
-    final isLoggedIn = true; // Simulate logged in for testing
-    if (isLoggedIn) {
-      final isBiometricEnabled = true; // Simulate biometric enabled
-      if (mounted) {
-        setState(() {
-          _isLoggedIn = true;
-          _isBiometricEnabled = isBiometricEnabled;
-          _isInitialized = true;
-        });
-      }
-    } else {
-      if (mounted) {
-        setState(() {
-          _isLoggedIn = false;
-          _isInitialized = true;
-        });
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!_isInitialized) {
-      return const SplashScreen();
+    final authStatus = ref.watch(authStatusProvider);
+
+    // Handle auth status to determine initial route
+    Widget initialScreen;
+    if (authStatus == AuthStatus.loading) {
+      initialScreen = const SplashScreen();
+    } else if (authStatus == AuthStatus.unauthenticated) {
+      initialScreen = const LoginPage();
+    } else if (authStatus == AuthStatus.biometricRequired) {
+      initialScreen = const BiometricAuthPage();
+    } else {
+      // Authenticated - go to main app
+      initialScreen = MainAppHome();
     }
 
-    if (!_isLoggedIn) {
-      return const SplashScreen(); // Temporarily show splash until auth is implemented
-    }
-
-    // If logged in, check if biometric is enabled and required
-    if (_isBiometricEnabled) {
-      // We need to check if biometric is enabled in settings
-      // For now, we'll always require biometric if available
-      return const SplashScreen(); // Temporarily show splash until biometric is implemented
-    }
-
-    // If biometric is not enabled or not required, go to main screen
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'DevForge AI',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -85,47 +46,56 @@ class _MyAppState extends ConsumerState<MyApp> {
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
-      home: ref.read(goRouterProvider),
+      routerConfig: ref.watch(goRouterProvider),
+      // Override initial location based on auth status
+      // We'll handle this through redirects in the router or by using a different approach
+      // For simplicity, we'll use the router as-is and handle redirects in the router itself
     );
   }
 }
 
-class SplashScreen extends StatelessWidget {
+/// Splash screen shown while checking auth status
+class SplashScreen extends ConsumerWidget {
   const SplashScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              height: MediaQuery.of(context).size.width * 0.4,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Image.asset('assets/logo.png'),
+            // App logo/icon
+            Image.asset(
+              'assets/logo.png',
+              width: 100,
+              height: 100,
             ),
             const SizedBox(height: 24),
-            Text(
+            const Text(
               'DevForge AI',
-              style: GoogleFonts.sourceCodePro(
-                fontSize: 28,
+              style: TextStyle(
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface,
+                color: Colors.deepPurple,
               ),
             ),
-            const SizedBox(height: 40),
-            const CircularProgressIndicator(
-              color: theme.colorScheme.primary,
-            ),
+            const SizedBox(height: 16),
+            const CircularProgressIndicator(),
           ],
         ),
       ),
     );
+  }
+}
+
+/// Main app home that uses the router
+class MainAppHome extends ConsumerWidget {
+  const MainAppHome({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Simply return the router - the router handles navigation
+    return ref.watch(goRouterProvider);
   }
 }

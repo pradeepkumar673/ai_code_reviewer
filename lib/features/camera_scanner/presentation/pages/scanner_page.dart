@@ -1,261 +1,234 @@
+import 'dart:async';
+import 'package:devforge_ai/features/camera_scanner/domain/usecases/scan_code.dart';
+import 'package:devforge_ai/features/camera_scanner/presentation/widgets/scan_overlay.dart';
+import 'package:devforge_ai/features/camera_scanner/presentation/widgets/scan_history_dialog.dart';
+import 'package:devforge_ai/features/camera_scanner/presentation/widgets/edit_scan_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:devforge_ai/core/widgets/custom_app_bar.dart';
-import 'package:devforge_ai/core/widgets/custom_button.dart';
-import 'package:devforge_ai/core/widgets/custom_text_field.dart';
-import 'package:devforge_ai/core/widgets/loading_indicator.dart';
-import 'package:devforge_ai/core/widgets/error_display.dart';
-import 'package:devforge_ai/features/camera_scanner/domain/usecases/scan_code.dart';
-import 'package:devforge_ai/features/chat/domain/use_cases/send_message.dart';
-import 'package:devforge_ai/core/models/persona.dart';
-import 'package:devforge_ai/core/providers/app_providers.dart';
+import 'package:camera/camera.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
 
+/// Camera scanner page with real-time text recognition
 class ScannerPage extends ConsumerStatefulWidget {
-  const ScannerPage({super.key});
+  const ScannerPage({Key? key}) : super(key: key);
 
   @override
   ConsumerState<ScannerPage> createState() => _ScannerPageState();
 }
 
 class _ScannerPageState extends ConsumerState<ScannerPage> {
-  String _scannedText = '';
-  bool _isScanning = false;
-  bool _useCamera = true; // true for camera, false for gallery
+  late CameraController _cameraController;
+  bool _isInitialized = false;
+  bool _isProcessing = false;
+  String? _scannedText;
+  String? _cleanedText;
+  Timer? _processingTimer;
+  final TextRecognizer _textRecognizer = GoogleMlKit.vision.textRecognizer();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final currentPersona = ref.watch(personaProvider);
-
-    return Scaffold(
-      appBar: CustomAppBar(
-        title: 'Code Scanner',
-        showBackButton: false,
-        actions: [
-          IconButton(
-            icon: Icon(_useCamera ? Icons.photo_library : Icons.camera_alt),
-            tooltip: _useCamera ? 'Use Camera' : 'Use Gallery',
-            onPressed: _isScanning
-                ? null
-                : () {
-                    setState(() {
-                      _useCamera = !_useCamera;
-                    });
-                  },
-          ),
-        ],
-      ),
-      body: Container(
-        color: theme.scaffoldBackgroundColor,
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                // Instructions
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Text(
-                    _useCamera
-                        ? 'Point your camera at code on your laptop screen\nMake sure the code is well-lit and in focus'
-                        : 'Select an image from your gallery containing code',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Scan Button
-                CustomButton(
-                  text: _useCamera ? 'Scan with Camera' : 'Scan from Gallery',
-                  icon: _useCamera ? Icons.camera_alt : Icons.photo_library,
-                  onPressed: _isScanning ? null : _performScan,
-                  isLoading: _isScanning,
-                  fullWidth: true,
-                ),
-                const SizedBox(height: 24),
-
-                // Divider
-                Divider(
-                  color: theme.colorScheme.outlineVariant,
-                  height: 1,
-                ),
-                const SizedBox(height: 24),
-
-                // Scanned Text Preview
-                Expanded(
-                  child: _scannedText.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No code scanned yet',
-                            style: const TextStyle(
-                              color: Colors.grey,
-                            ),
-                          ),
-                        )
-                      : Container(
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: theme.colorScheme.outline,
-                            ),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: SingleChildScrollView(
-                              child: Container(
-                                padding: const EdgeInsets.all(16),
-                                child: Text(
-                                  _scannedText,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                ),
-
-                // Action Buttons
-                if (_scannedText.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: CustomButton.outlined(
-                          text: 'Copy Text',
-                          icon: Icons.content_copy,
-                          onPressed: _copyToClipboard,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: CustomButton(
-                          text: 'Send to Chat',
-                          icon: Icons.send,
-                          onPressed: _sendToChat,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+  void initState() {
+    super.initState();
+    _initializeCamera();
   }
 
-  Future<void> _performScan() async {
-    setState(() {
-      _isScanning = true;
-    });
-
+  Future<void> _initializeCamera() async {
     try {
-      final scanCode = ref.read(scanCodeProvider);
-      final scannedText = await scanCode.call(useCamera: _useCamera);
-      if (scannedText != null && scannedText.isNotEmpty) {
-        setState(() {
-          _scannedText = scannedText;
-        });
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text(
-                'No text detected. Please try again with better lighting.',
-              ),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
-        }
-      }
+      final cameras = await availableCameras();
+      final frontCamera = cameras.firstWhere(
+        (camera) => camera.lensDirection == LensDirection.back,
+        orElse: () => cameras.first,
+      );
+
+      _cameraController = CameraController(
+        frontCamera,
+        ResolutionPreset.medium,
+        enableAudio: false,
+      );
+
+      await _cameraController.initialize();
+      if (!mounted) return;
+
+      setState(() {
+        _isInitialized = true;
+      });
+
+      // Start processing frames for real-time text recognition
+      _startFrameProcessing();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error scanning: $e',
-            ),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isScanning = false;
-        });
-      }
+      debugPrint('Error initializing camera: $e');
     }
   }
 
-  Future<void> _copyToClipboard() async {
-    // In a real implementation, we would use clipboard package
-    // For now, we'll show a snackbar
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Text copied to clipboard!'),
-          backgroundColor: Colors.green,
+  void _startFrameProcessing() {
+    if (_isProcessing || !_isInitialized) return;
+
+    _isProcessing = true;
+    _processingTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) async {
+      if (!_isInitialized || !_cameraController.value.isInitialized) return;
+
+      try {
+        final image = await _cameraController.takePicture();
+        final inputImage = InputImage.fromFilePath(image.path);
+
+        final recognizedText = await _textRecognizer.processImage(inputImage);
+        final scannedText = recognizedText.text;
+
+        if (scannedText.isNotEmpty) {
+          final cleanedText = _cleanScannedText(scannedText);
+
+          if (cleanedText.isNotEmpty) {
+            setState(() {
+              _scannedText = scannedText;
+              _cleanedText = cleanedText;
+            });
+
+            // Stop processing once we have good text
+            _processingTimer?.cancel();
+            _isProcessing = false;
+
+            // Show edit dialog
+            if (mounted) {
+              await showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => EditScanDialog(
+                  scannedText: _scannedText!,
+                  cleanedText: _cleanedText!,
+                  onSave: (text) {
+                    Navigator.of(context).pop();
+                    // TODO: Send to current persona
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Text sent to AI Mentor!')),
+                    );
+                  },
+                ),
+              );
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('Error processing frame: $e');
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isProcessing = false;
+          });
+        }
+      }
+    });
+  }
+
+  String _cleanScannedText(String text) {
+    if (text.isEmpty) return '';
+
+    // Split into lines and process each line
+    final List<String> lines = text.split('\n');
+    final List<String> cleanedLines = [];
+
+    for (String line in lines) {
+      // Remove leading/trailing whitespace
+      String trimmed = line.trim();
+
+      // Skip empty lines but keep track of consecutive empty lines for code structure
+      if (trimmed.isEmpty) {
+        // Only add empty line if previous line wasn't empty (to avoid multiple empty lines)
+        if (cleanedLines.isNotEmpty && cleanedLines.last.isNotEmpty) {
+          cleanedLines.add('');
+        }
+        continue;
+      }
+
+      // Fix common OCR mistakes in code
+      trimmed = trimmed
+          .replaceAll(RegExp(r'O(?=[A-Za-z])'), '0') // O between letters -> 0
+          .replaceAll(RegExp(r'l(?=[A-Za-z])'), '1') // l between letters -> 1
+          .replaceAll(RegExp(r'S(?=[A-Za-z])'), '5') // S between letters -> 5
+          .replaceAll('`', ''); // Remove backticks that often appear in OCR
+
+      cleanedLines.add(trimmed);
+    }
+
+    // Join lines back together
+    String result = cleanedLines.join('\n');
+
+    // Remove multiple consecutive empty lines (more than 2)
+    result = result.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+
+    // Trim final result
+    return result.trim();
+  }
+
+  @override
+  void dispose() {
+    _processingTimer?.cancel();
+    _cameraController.dispose();
+    _textRecognizer.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isInitialized || !_cameraController.value.isInitialized) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
         ),
       );
     }
-  }
 
-  Future<void> _sendToChat() async {
-    if (_scannedText.isEmpty) return;
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Camera preview
+          CameraPreview(_cameraController),
 
-    // Prepend context about the scanned code
-    final contextMessage = '''
-I scanned this code from my laptop screen:
+          // Scan overlay with guidance
+          const ScanOverlay(),
 
-```$_scannedText```
-
-Can you help me understand, debug, or improve this code?
-''';
-
-    try {
-      final sendMessage = ref.read(sendMessageProvider);
-      final currentPersona = ref.read(personaProvider);
-      await sendMessage.call(contextMessage);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Sent to chat with ${currentPersona.displayName}',
+          // Bottom controls
+          Positioned(
+            bottom: 24,
+            left: 24,
+            right: 24,
+            child: Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _isProcessing ? null : () {
+                      _startFrameProcessing();
+                    },
+                    icon: const Icon(Icons.camera_alt),
+                    label: Text(
+                      _isProcessing ? 'Processing...' : 'Scan Code',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: _isProcessing ? Colors.grey : Colors.blue,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => const ScanHistoryDialog(),
+                      );
+                    },
+                    icon: const Icon(Icons.history),
+                    label: const Text('History'),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            backgroundColor: Theme.of(context).colorScheme.primary,
           ),
-        );
-        // Clear the scanned text after sending
-        setState(() {
-          _scannedText = '';
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error sending to chat: $e',
-            ),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-    }
+        ],
+      ),
+    );
   }
 }

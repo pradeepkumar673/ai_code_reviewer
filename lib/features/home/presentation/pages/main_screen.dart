@@ -1,29 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:devforge_ai/core/router/app_router.dart';
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends ConsumerWidget {
   final Widget child;
+  final String location;
 
   const MainScreen({
     super.key,
     required this.child,
+    required this.location,
   });
 
   @override
-  Widget build(BuildContext context) {
-    // We'll use a Scaffold with a bottom navigation bar
-    // The child parameter will be the actual content from the routes
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Calculate selected index based on location
+    int selectedIndex = _calculateSelectedIndex(location);
 
     return Scaffold(
       body: child,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _calculateSelectedIndex(ModalRoute.of(context)?.settings.name),
+        selectedIndex: selectedIndex,
         onDestinationSelected: (int index) {
           final List<String> routes = ['/chat', '/scanner', '/quality', '/gamification', '/settings'];
           if (index < routes.length) {
-            // In a real app, we would use GoRouter here
-            // For now, we'll just navigate using Navigator
-            // TODO: Implement proper navigation with GoRouter
+            // Use GoRouter for navigation
+            context.go(routes[index]);
           }
         },
         destinations: const [
@@ -52,7 +55,7 @@ class MainScreen extends StatelessWidget {
     );
   }
 
-  int _calculateSelectedIndex(String? location) {
+  int _calculateSelectedIndex(String location) {
     switch (location) {
       case '/chat':
         return 0;

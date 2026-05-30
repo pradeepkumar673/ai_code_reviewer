@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/material.dart';
 import 'package:devforge_ai/features/auth/presentation/pages/login_page.dart';
 import 'package:devforge_ai/features/auth/presentation/pages/biometric_auth_page.dart';
 import 'package:devforge_ai/features/home/presentation/pages/main_screen.dart';
@@ -18,17 +19,15 @@ import 'package:devforge_ai/features/settings/presentation/pages/settings_page.d
 /// App router using GoRouter for navigation
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/chat',
     debugLogDiagnostics: true,
-    redirect: (context, state) {
-      // Handle authentication redirects if needed
-      // For now, we'll handle it in the app logic
-      return null;
-    },
     routes: [
       // Home screen with bottom navigation
       ShellRoute(
-        builder: (context, state, child) => MainScreen(child: child),
+        builder: (context, state, child) => MainScreen(
+          child: child,
+          location: state.location,
+        ),
         routes: [
           // Chat
           GoRoute(
