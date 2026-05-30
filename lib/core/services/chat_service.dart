@@ -1,7 +1,8 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
-import '../models/chat_model.dart';
-import '../repos/chat_repo.dart';
-import '../utils/constants.dart';
+import '../../models/chat_model.dart';
+import '../../models/persona.dart';
+import '../../repos/chat_repo.dart';
+import '../../utils/constants.dart';
 import 'package:uuid/uuid.dart';
 
 /// ChatService
@@ -12,21 +13,78 @@ class ChatService {
   late final GenerativeModel _model;
   late ChatSession _geminiChat;
 
-  ChatService() {
+  /// Current persona - affects the system instruction and tone of the AI
+  Persona _currentPersona = Persona.strictProfessor;
+
+  ChatService({Persona initialPersona = Persona.strictProfessor}) {
+    _currentPersona = initialPersona;
+    _initializeModel();
+  }
+
+  void _initializeModel() {
     _model = GenerativeModel(
       model: 'gemini-1.5-flash',
       apiKey: apiKey,
-      systemInstruction: Content.system(
-        'You are DevForge AI, an expert software engineering assistant. '
-        'Help developers with coding questions, debugging, code reviews, '
-        'and best practices. Format code snippets with markdown code blocks.',
-      ),
+      systemInstruction: Content.system(_getSystemInstruction()),
     );
     _resetGeminiChat();
   }
 
+  String _getSystemInstruction() {
+    switch (_currentPersona) {
+      case Persona.strictProfessor:
+        return '''You are DevForge AI operating as a Strict Professor persona.
+You are very detail-oriented and emphasize correctness, best practices, and theoretical foundations.
+You often refer to academic sources and expect students to follow rigorous standards.
+When providing code, you ensure it is well-commented, follows best practices, and is optimized for readability and performance.
+You explain concepts thoroughly and expect users to understand the underlying principles.
+Format code snippets with markdown code blocks.''';
+
+      case Persona.placementGuru:
+        return '''You are DevForge AI operating as a Placement Guru persona.
+You focus on preparing students for technical interviews and job placements.
+You prioritize practical coding problems, data structures, algorithms, and system design questions commonly asked in interviews.
+You encourage users to think aloud and explain their reasoning process.
+You provide hints and guidance rather than full solutions to foster learning and problem-solving skills.
+You are encouraging, supportive, and focused on building confidence for interview scenarios.
+Format code snippets with markdown code blocks.''';
+
+      case Persona.startupSpeedster:
+        return '''You are DevForge AI operating as a Startup Speedster persona.
+You believe in rapid prototyping, getting things done quickly, and iterating based on feedback.
+You favor practical, working solutions over perfect ones and encourage the use of libraries and frameworks to speed up development.
+You are all about building MVPs and learning through building.
+You emphasize speed, experimentation, and learning from failures in a startup environment.
+Format code snippets with markdown code blocks.''';
+
+      case Persona.openSourceSage:
+        return '''You are DevForge AI operating as an Open Source Sage persona.
+You value community, collaboration, transparency, and clean, maintainable code.
+You advocate for following established conventions, contributing to open source projects, and leaving code better than you found it.
+You are knowledgeable about licenses, documentation, and community etiquette.
+You encourage users to think about the broader impact of their code and how it fits into larger ecosystems.
+Format code snippets with markdown code blocks.''';
+
+      default:
+        return '''You are DevForge AI, an expert software engineering assistant.
+Help developers with coding questions, debugging, code reviews, and best practices.
+Format code snippets with markdown code blocks.''';
+    }
+  }
+
   void _resetGeminiChat() {
     _geminiChat = _model.startChat();
+  }
+
+  /// Update the current persona and reset the chat session to apply new instructions
+  void setPersona(Persona persona) {
+    if (_currentPersona == persona) return;
+    _currentPersona = persona;
+    _initializeModel();
+    // Note: We don't reset currentSession here to preserve chat history,
+    // but the new system instruction will apply to future messages.
+    // If you want to clear history when changing persona, uncomment below:
+    // currentSession = null;
   }
 
   // ── Session lifecycle ──────────────────────────────────────────────────────
@@ -45,8 +103,7 @@ class ChatService {
       _resetGeminiChat();
       // Replay history so Gemini has context (last 20 messages max)
       final history = session.messages.take(20).toList();
-      for (final msg in history) {
-        // We don't await — just reconstruct the context object
+      if (history.isNotEmpty) {
         _geminiChat = _model.startChat(
           history: history
               .map((m) => Content(
@@ -55,7 +112,6 @@ class ChatService {
                   ))
               .toList(),
         );
-        break; // startChat accepts the full history at once
       }
     }
   }
@@ -74,7 +130,7 @@ class ChatService {
     return sessions.reversed.toList();
   }
 
-  // ── Messaging ──────────────────────────────────────────────────────────────
+  // ── Messaging ────────────────────────────────────────────────────────────
 
   /// Sends [message] to Gemini, appends both the user message and the AI
   /// response to [currentSession], and persists the session.
@@ -137,7 +193,7 @@ class ChatService {
     }
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Helpers ────────────────────────────────────────────────────────────
 
   String _trimTitle(String message) {
     const maxLen = 40;

@@ -15,19 +15,50 @@ dependencies:
   flutter_markdown: ^0.7.7+1
   iconsax: ^0.0.8
   google_fonts: ^6.1.0
-  provider: ^6.1.2
+  flutter_riverpod: ^2.4.9
   shared_preferences: ^2.5.3
   flutter_dotenv: ^5.2.1
   lottie: ^3.1.0
   image_picker: ^1.1.2
-  # Only these for now - we'll add others later
-
+  # ML Kit for text recognition
+  google_ml_kit: ^2.5.0
+  # For future ML scoring
+  tflite_flutter: ^0.12.0
+  # Voice input/output
+  speech_to_text: ^7.0.0
+  flutter_tts: ^4.2.0
+  # UUID for generating IDs
+  uuid: ^4.4.0
+  # Local auth for biometrics
+  local_auth: ^2.2.9
+  # For secure storage
+  flutter_secure_storage: ^9.0.0
+  # For SVG assets (if needed)
+  flutter_svg: ^2.0.10+1
+  # For beautiful UI components
+  flutter_staggered_animations: ^1.1.1
+  # For charts (skill tracker radar chart)
+  fl_chart: ^0.69.0
+  # For better loading states
+  skeletonizer: ^1.2.0
+  # For persistent storage (Hive or similar)
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  # For functional programming concepts
+  fpdart: ^1.1.0
+  # For dependency injection (if using riverpod hooks)
+  hooks_riverpod: ^2.4.9
+  flutter_hooks: ^0.20.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
-
+  # For code generation (Hive, JSON serializable)
+  build_runner: ^2.4.9
+  hive_generator: ^2.0.1
+  json_serializable: ^6.8.0
+  custom_lint: ^0.6.4
 
 # ── Launcher icon config ──────────────────────────────────────────────────────
 flutter_launcher_icons:
@@ -48,10 +79,12 @@ flutter_launcher_icons:
     generate: true
     image_path: "assets/logo.png"
 
-
 # ── Flutter config ────────────────────────────────────────────────────────────
 flutter:
   uses-material-design: true
   assets:
     - assets/
     - assets/creds/.env
+    - assets/icons/
+    - assets/illustrations/
+    - assets/animations/

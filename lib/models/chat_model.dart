@@ -1,3 +1,5 @@
+import 'package:uuid/uuid.dart';
+
 class ChatMessage {
   final String id;
   final String content;
@@ -15,14 +17,14 @@ class ChatMessage {
         'id': id,
         'content': content,
         'isFromUser': isFromUser,
-        'timestamp': timestamp.toIso8601String(),
+        'timestamp': timestamp.millisecondsSinceEpoch,
       };
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
-        id: json['id'],
-        content: json['content'],
-        isFromUser: json['isFromUser'],
-        timestamp: DateTime.parse(json['timestamp']),
+        id: json['id'] as String,
+        content: json['content'] as String,
+        isFromUser: json['isFromUser'] as bool,
+        timestamp: DateTime.fromMillisecondsSinceEpoch(json['timestamp'] as int),
       );
 }
 
@@ -37,6 +39,26 @@ class DevForgeChatSession {
     required this.messages,
   });
 
+  /// Creates a brand-new empty session with a generated id.
+  factory DevForgeChatSession.create({String title = 'New Chat'}) {
+    return DevForgeChatSession(
+      id: const Uuid().v4(),
+      title: title,
+      messages: [],
+    );
+  }
+
+  DevForgeChatSession copyWith({
+    String? id,
+    String? title,
+    List<ChatMessage>? messages,
+  }) =>
+      DevForgeChatSession(
+        id: id ?? this.id,
+        title: title ?? this.title,
+        messages: messages ?? this.messages,
+      );
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'title': title,
@@ -45,10 +67,13 @@ class DevForgeChatSession {
 
   factory DevForgeChatSession.fromJson(Map<String, dynamic> json) =>
       DevForgeChatSession(
-        id: json['id'],
-        title: json['title'],
-        messages: (json['messages'] as List)
-            .map((m) => ChatMessage.fromJson(m))
+        id: json['id'] as String,
+        title: json['title'] as String,
+        messages: (json['messages'] as List<dynamic>)
+            .map((m) => ChatMessage.fromJson(m as Map<String, dynamic>))
             .toList(),
       );
 }
+
+// Kept for backward-compatibility — remove once all references are updated
+typedef PropalChatSession = DevForgeChatSession;

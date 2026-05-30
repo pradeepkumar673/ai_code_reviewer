@@ -4,7 +4,8 @@ import '../models/user.dart';
 import '../models/chat_model.dart';
 
 class SecureStorageService {
-  // User Management
+  // ── User management ────────────────────────────────────────────────────────
+
   static Future<void> saveUser(User user) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('current_user', jsonEncode(user.toJson()));
@@ -14,7 +15,7 @@ class SecureStorageService {
     final prefs = await SharedPreferences.getInstance();
     final userJson = prefs.getString('current_user');
     if (userJson != null) {
-      return User.fromJson(jsonDecode(userJson));
+      return User.fromJson(jsonDecode(userJson) as Map<String, dynamic>);
     }
     return null;
   }
@@ -24,8 +25,16 @@ class SecureStorageService {
     await prefs.remove('current_user');
   }
 
-  // Chat History Management
-  static Future<void> saveChatSessions(List<DevForgeChatSession> sessions) async {
+  /// Clears ALL app data (user + chat sessions + settings). Used on logout.
+  static Future<void> clearAll() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
+
+  // ── Chat history management ────────────────────────────────────────────────
+
+  static Future<void> saveChatSessions(
+      List<DevForgeChatSession> sessions) async {
     final prefs = await SharedPreferences.getInstance();
     final sessionsJson = sessions.map((s) => s.toJson()).toList();
     await prefs.setString('chat_sessions', jsonEncode(sessionsJson));
@@ -35,8 +44,12 @@ class SecureStorageService {
     final prefs = await SharedPreferences.getInstance();
     final sessionsJson = prefs.getString('chat_sessions');
     if (sessionsJson != null) {
-      final List<dynamic> sessions = jsonDecode(sessionsJson);
-      return sessions.map((s) => DevForgeChatSession.fromJson(s)).toList();
+      final List<dynamic> sessions =
+          jsonDecode(sessionsJson) as List<dynamic>;
+      return sessions
+          .map((s) =>
+              DevForgeChatSession.fromJson(s as Map<String, dynamic>))
+          .toList();
     }
     return [];
   }
@@ -60,7 +73,8 @@ class SecureStorageService {
     await saveChatSessions(sessions);
   }
 
-  // App Settings
+  // ── App settings ───────────────────────────────────────────────────────────
+
   static Future<void> setBiometricEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('biometric_enabled', enabled);
